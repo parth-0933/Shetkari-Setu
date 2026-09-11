@@ -2,22 +2,18 @@
 
 import React, { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { Language, t } from '@/lib/translations';
+import { useLanguage } from '@/context/LanguageContext';
 import { ShieldCheck, Scale, Landmark, FileText, CheckCircle2, AlertCircle, ArrowLeft, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CompliancePage() {
-  const [lang, setLang] = useState<Language>('mr');
+  const { lang, dict } = useLanguage();
   const [lowBandwidth, setLowBandwidth] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
-
-  const dict = t[lang];
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col">
       <Navbar
-        lang={lang}
-        onToggleLang={() => setLang(lang === 'mr' ? 'en' : 'mr')}
         lowBandwidth={lowBandwidth}
         onToggleLowBandwidth={() => setLowBandwidth(!lowBandwidth)}
         isOnline={isOnline}

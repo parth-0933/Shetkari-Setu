@@ -3,20 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, Clock, ShieldAlert, ShieldCheck, IndianRupee, ArrowDownRight, Send, AlertTriangle, RotateCcw } from 'lucide-react';
 import { getSocket } from '@/lib/socket';
-import { Language, t } from '@/lib/translations';
+import { useLanguage } from '@/context/LanguageContext';
+import { Language } from '@/lib/translations';
 
 interface ReverseAuctionConsoleProps {
   tripId: string;
-  lang: Language;
   lowBandwidth: boolean;
 }
 
 export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
   tripId,
-  lang,
   lowBandwidth
 }) => {
-  const dict = t[lang];
+  const { lang, dict } = useLanguage();
   const [auction, setAuction] = useState<any>({
     tripId: 'TRIP_LAMJANA_LATUR_01',
     currentLowestBid: 850,
@@ -93,15 +92,14 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
     setErrorMessage(null);
     setSubmitting(true);
 
-    // Client-side quick check (server validates strictly as well)
     if (amount < auction.floorPrice) {
-      setErrorMessage(`किमान आधार दर संरक्षण (Floor Price): ₹${auction.floorPrice} खाली बोली लावण्यास सक्त बंदी आहे.`);
+      setErrorMessage(dict.floorPriceAlert);
       setSubmitting(false);
       return;
     }
 
     if (amount >= auction.currentLowestBid) {
-      setErrorMessage(`तुमची बोली सध्याच्या सर्वात कमी बोलीपेक्षा (₹${auction.currentLowestBid}) कमी असणे आवश्यक आहे.`);
+      setErrorMessage(lang === 'en' ? `Your bid must be lower than ₹${auction.currentLowestBid}` : `तुमची बोली सध्याच्या ₹${auction.currentLowestBid} पेक्षा कमी असावी.`);
       setSubmitting(false);
       return;
     }
@@ -110,7 +108,7 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
     socket.emit('bid:submit', {
       tripId,
       transporterId: 'TRANS_DEMO_ME',
-      driverName: 'तुम्ही (Current Transporter)',
+      driverName: lang === 'en' ? 'You (Current Transporter)' : 'तुम्ही (Current Transporter)',
       vehicleNumber: 'MH-24-TR-5555',
       amount
     });
@@ -133,6 +131,140 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
     return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  // Localized texts
+  const tLabels = {
+    auctionSubtitle: {
+      en: '10-Minute Timed Reverse Auction',
+      mr: '१० मिनिटे उलटा लिलाव (Reverse Auction)',
+      hi: '10 मिनट की लाइव रिवर्स नीलामी',
+      kn: '10 ನಿಮಿಷಗಳ ಲೈವ್ ರಿವರ್ಸ್ ಹರಾಜು',
+      te: '10 నిమిషాల రివర్స్ వేలం',
+      gu: '10 મિનિટની રિવર્સ હરાજી'
+    },
+    tripHeading: {
+      en: 'Lamjana Agricultural Freight Auction (Lamjana to Latur)',
+      mr: 'लामजणा शेतमाल वाहतूक लिलाव (Lamjana to Latur)',
+      hi: 'लामजना कृषि परिवहन नीलामी (लामजना से लातूर)',
+      kn: 'ಲಾಂಜನಾ ಕೃಷಿ ಸರಕು ಸಾಗಣೆ ಹರಾಜು (ಲಾಂಜನಾದಿಂದ ಲಾತೂರ್)',
+      te: 'లాంజనా వ్యవసాయ సరుకు రవాణా వేలం (లాంజనా నుండి లాతూర్)',
+      gu: 'લામજના કૃષિ માલવાહક હરાજી (લામજના થી લાતૂર)'
+    },
+    tripMeta: {
+      en: 'Distance: 41 km • Cargo: 15 Quintals Soybean (Bolero / Tata Ace class)',
+      mr: 'अंतर: ४१ किमी • माल: १५ क्विंटल सोयाबीन (बोलेरो / छोटा हत्ती श्रेणी)',
+      hi: 'दूरी: 41 किमी • माल: 15 क्विंटल सोयाबीन (बोलेरो / पिकअप श्रेणी)',
+      kn: 'ಅಂತರ: 41 ಕಿ.ಮೀ • ಸರಕು: 15 ಕ್ವಿಂಟಾಲ್ ಸೋಯಾಬೀನ್',
+      te: 'దూరం: 41 కి.మీ • సరుకు: 15 క్విಂಟాళ్ల సోయాబీన్',
+      gu: 'અંતર: 41 કિમી • માલ: 15 ક્વિન્ટલ સોયાબીન'
+    },
+    perTrip: {
+      en: '/ Entire Trip (41 km)',
+      mr: '/ संपूर्ण फेरी (४१ किमी)',
+      hi: '/ पूरी यात्रा (41 किमी)',
+      kn: '/ ಪೂರ್ಣ ಪ್ರಯಾಣ (41 ಕಿ.ಮೀ)',
+      te: '/ పూర్తి ప్రయాణం (41 కి.మీ)',
+      gu: '/ સંપૂર્ણ યાત્રા (41 કિમી)'
+    },
+    leading: {
+      en: 'Leading Bidder:',
+      mr: 'आघाडीवर:',
+      hi: 'अग्रणी बोलीदाता:',
+      kn: 'ಮುಂಚೂಣಿಯಲ್ಲಿ:',
+      te: 'ముందంజలో:',
+      gu: 'આગળ પડતી બોલી:'
+    },
+    floorTitle: {
+      en: 'Statutory Floor Price Protection',
+      mr: 'किमान आधार दर संरक्षण (Floor Price Protection)',
+      hi: 'न्यूनतम दर संरक्षण (Floor Price Protection)',
+      kn: 'ಕನಿಷ್ಠ ಬೆಲೆ ರಕ್ಷಣೆ',
+      te: 'కనీస ధర రక్షణ',
+      gu: 'લઘુત્તમ ભાવ સુરક્ષા'
+    },
+    floorDesc: {
+      en: 'To prevent predatory exploitation of transporters, bids below ₹650 are strictly rejected at the server level.',
+      mr: 'वाहतूकदारांचे आर्थिक शोषण रोखण्यासाठी ₹६५० च्या खाली कोणतीही बोली सर्वर स्तरावर स्वीकारली जात नाही.',
+      hi: 'ट्रांसपोर्टरों के आर्थिक शोषण को रोकने के लिए ₹650 से कम की बोली सर्वर स्तर पर खारिज की जाती है।',
+      kn: 'ಸಾರಿಗೆದಾರರ ಶೋಷಣೆ ತಡೆಯಲು ₹650 ಕ್ಕಿಂತ ಕಡಿಮೆ ಬಿಡ್ ಸರ್ವರ್ ಮಟ್ಟದಲ್ಲಿ ತಿರಸ್ಕರಿಸಲಾಗುತ್ತದೆ.',
+      te: 'రవాణాదారుల ఆర్థిక రక్షణ కోసం ₹650 కంటే తక్కువ బిడ్ సర్వర్ స్థాయిలో తిరస్కరించబడుతుంది.',
+      gu: 'ટ્રાન્સપોર્ટરોનું શોષણ રોકવા ₹650 થી ઓછી બોલી સર્વર સ્તરે નકારવામાં આવે છે.'
+    },
+    floorLimitLabel: {
+      en: 'Floor Price Limit:',
+      mr: 'किमान मर्यादा:',
+      hi: 'न्यूनतम सीमा:',
+      kn: 'ಕನಿಷ್ಠ ಮಿತಿ:',
+      te: 'కనీస పరిమిತಿ:',
+      gu: 'લઘુત્તમ મર્યાદા:'
+    },
+    legalGuarantee: {
+      en: '(Statutory Guarantee)',
+      mr: '(कायदेशीर हमी)',
+      hi: '(कानूनी गारंटी)',
+      kn: '(ಕಾನೂನು ಖಾತರಿ)',
+      te: '(చట్టపరమైన హామీ)',
+      gu: '(કાનૂની ગેરંટી)'
+    },
+    bidConsoleTitle: {
+      en: 'Place Your Bid Console',
+      mr: 'बोली लावा (Place Your Bid Console)',
+      hi: 'बोली लगाएं (Bid Console)',
+      kn: 'ಬಿಡ್ ಕನ್ಸೋಲ್',
+      te: 'బిడ్ కన్సోల్',
+      gu: 'બોલી કન્સોલ'
+    },
+    dec20: {
+      en: 'Decrement -₹20',
+      mr: '- ₹२० ने कमी करा',
+      hi: '- ₹20 कम करें',
+      kn: '- ₹20 ಕಡಿಮೆ ಮಾಡಿ',
+      te: '- ₹20 తగ్గించండి',
+      gu: '- ₹20 ઘટાડો'
+    },
+    dec50: {
+      en: 'Decrement -₹50',
+      mr: '- ₹५० ने कमी करा',
+      hi: '- ₹50 कम करें',
+      kn: '- ₹50 ಕಡಿಮೆ ಮಾಡಿ',
+      te: '- ₹50 తగ్గించండి',
+      gu: '- ₹50 ઘટાડો'
+    },
+    test600: {
+      en: 'Test: ₹600 (Floor Breach Test)',
+      mr: 'चाचणी: ₹६०० (Floor Breach Test)',
+      hi: 'परीक्षण: ₹600 (Floor Breach Test)',
+      kn: 'ಪರೀಕ್ಷೆ: ₹600 (ಮಿತಿ ಉಲ್ಲಂಘನೆ ಪರೀಕ್ಷೆ)',
+      te: 'పరీక్ష: ₹600 (పరిమితి ఉల్లంಘన)',
+      gu: 'પરીક્ષણ: ₹600 (ફ્લોર બ્રીચ ટેસ્ટ)'
+    },
+    customPlaceholder: {
+      en: `Enter bid (e.g. ${auction.currentLowestBid - 10})`,
+      mr: `बोली टाका (उदा. ${auction.currentLowestBid - 10})`,
+      hi: `बोली दर्ज करें (उदा. ${auction.currentLowestBid - 10})`,
+      kn: `ಬಿಡ್ ನಮೂದಿಸಿ (ಉದಾ. ${auction.currentLowestBid - 10})`,
+      te: `బిడ్ నమోదు చేయండి (ఉదా. ${auction.currentLowestBid - 10})`,
+      gu: `બોલી દાખલ કરો (દા.ત. ${auction.currentLowestBid - 10})`
+    },
+    liveBidStream: {
+      en: 'Live Bid Stream',
+      mr: 'थेट बोली क्रमवारी (Live Bid Stream)',
+      hi: 'लाइव बोली क्रम (Live Bid Stream)',
+      kn: 'ಲೈವ್ ಬಿಡ್ ಪಟ್ಟಿ',
+      te: 'లైవ్ బిడ్ల జాబితా',
+      gu: 'લાઇવ બોલી ક્રમ'
+    },
+    resetDemo: {
+      en: 'Reset Auction Demo',
+      mr: 'लिलाव पूर्ववत करा (Reset Demo)',
+      hi: 'नीलामी रीसेट करें (Reset Demo)',
+      kn: 'ಹರಾಜು ಮರುಹೊಂದಿಸಿ',
+      te: 'వేలం రీసెట్ చేయండి',
+      gu: 'હરાજી રીસેટ કરો'
+    }
+  };
+
+  const getT = (key: keyof typeof tLabels) => tLabels[key]?.[lang] || tLabels[key]?.en || '';
+
   return (
     <div className="bg-slate-900/90 border border-emerald-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl overflow-hidden backdrop-blur-md">
       
@@ -143,13 +275,13 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
             <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase">
               Socket.io Live Room: {tripId}
             </span>
-            <span className="text-xs text-slate-400">१० मिनिटे उलटा लिलाव (Reverse Auction)</span>
+            <span className="text-xs text-slate-400">{getT('auctionSubtitle')}</span>
           </div>
           <h2 className="text-base sm:text-lg font-bold text-white mt-1">
-            लामजणा शेतमाल वाहतूक लिलाव (Lamjana to Latur)
+            {getT('tripHeading')}
           </h2>
           <p className="text-xs text-emerald-300/80 mt-0.5">
-            अंतर: ४१ किमी • माल: १५ क्विंटल सोयाबीन (बोलेरो / छोटा हत्ती श्रेणी)
+            {getT('tripMeta')}
           </p>
         </div>
 
@@ -178,10 +310,10 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
               <IndianRupee className="w-7 h-7 inline" />
               {auction.currentLowestBid}
             </span>
-            <span className="text-xs text-slate-400 font-medium">/ संपूर्ण फेरी (४१ किमी)</span>
+            <span className="text-xs text-slate-400 font-medium">{getT('perTrip')}</span>
           </div>
           <div className="mt-2 text-xs text-slate-300 flex items-center gap-1.5">
-            <span>आघाडीवर:</span>
+            <span>{getT('leading')}</span>
             <strong className="text-white">{auction.currentWinner?.driverName}</strong>
             <span className="text-emerald-400 font-mono">({auction.currentWinner?.vehicleNumber})</span>
           </div>
@@ -193,22 +325,22 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
             <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
               <h4 className="text-xs font-bold text-amber-300">
-                किमान आधार दर संरक्षण (Floor Price Protection)
+                {getT('floorTitle')}
               </h4>
               <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
-                वाहतूकदारांचे आर्थिक शोषण रोखण्यासाठी <strong>₹{auction.floorPrice}</strong> च्या खाली कोणतीही बोली सर्वर स्तरावर (Server-side hard validation) स्वीकारली जात नाही.
+                {getT('floorDesc')}
               </p>
             </div>
           </div>
           <div className="mt-2 pt-2 border-t border-slate-800 flex justify-between text-[11px]">
-            <span className="text-slate-400">किमान मर्यादा (Floor Limit):</span>
-            <span className="font-bold text-amber-400 font-mono">₹{auction.floorPrice} (कायदेशीर हमी)</span>
+            <span className="text-slate-400">{getT('floorLimitLabel')}</span>
+            <span className="font-bold text-amber-400 font-mono">₹{auction.floorPrice} {getT('legalGuarantee')}</span>
           </div>
         </div>
 
       </div>
 
-      {/* ML Bid Anomaly / Collusion Alert Banner (Innovation Factor) */}
+      {/* ML Bid Anomaly / Collusion Alert Banner */}
       {auction.anomalyInfo && (
         <div className={`mt-4 p-3 rounded-xl border text-xs flex items-center justify-between ${
           auction.anomalyInfo.isCollusion
@@ -223,9 +355,9 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
             )}
             <div>
               <span className="font-bold">
-                {auction.anomalyInfo.isCollusion ? 'AI लिलाव संगनमत इशारा (Anomaly Flagged): ' : 'AI लिलाव सुरक्षितता: '}
+                {auction.anomalyInfo.isCollusion ? 'AI Anomaly Flagged: ' : 'AI Security: '}
               </span>
-              <span>{auction.anomalyInfo.reasons?.[0] || 'लिलाव निरोगी व स्पर्धात्मक सुरू आहे.'}</span>
+              <span>{auction.anomalyInfo.reasons?.[0] || 'Competitive decrement pattern verified.'}</span>
             </div>
           </div>
           <span className="text-[10px] font-mono px-2 py-0.5 bg-slate-900 rounded border border-slate-700">
@@ -244,7 +376,7 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
       {/* Bid Submission Console: Quick Decrement Buttons (-₹50, -₹20) + Custom Input */}
       <div className="mt-5 p-4 rounded-xl bg-slate-950/60 border border-slate-800">
         <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
-          बोली लावा (Place Your Bid Console)
+          {getT('bidConsoleTitle')}
         </h4>
 
         {/* Quick Decrement Buttons */}
@@ -256,7 +388,7 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
             className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-emerald-900/60 border border-slate-700 hover:border-emerald-500 text-xs font-bold text-emerald-300 flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-40"
           >
             <ArrowDownRight className="w-4 h-4 text-emerald-400" />
-            <span>- ₹२० ने कमी करा</span>
+            <span>{getT('dec20')}</span>
             <span className="text-[10px] text-slate-400 font-mono">(₹{auction.currentLowestBid - 20})</span>
           </button>
 
@@ -267,7 +399,7 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
             className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-emerald-900/60 border border-slate-700 hover:border-emerald-500 text-xs font-bold text-emerald-300 flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-40"
           >
             <ArrowDownRight className="w-4 h-4 text-emerald-400" />
-            <span>- ₹५० ने कमी करा</span>
+            <span>{getT('dec50')}</span>
             <span className="text-[10px] text-slate-400 font-mono">(₹{auction.currentLowestBid - 50})</span>
           </button>
 
@@ -279,7 +411,7 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
             title="Attempts to bid ₹600 (below ₹650) to demonstrate server-side floor rejection"
           >
             <ShieldAlert className="w-4 h-4 text-rose-400" />
-            <span>चाचणी: ₹६०० (Floor Breach Test)</span>
+            <span>{getT('test600')}</span>
           </button>
         </div>
 
@@ -291,7 +423,7 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
               type="number"
               value={customBid}
               onChange={(e) => setCustomBid(e.target.value)}
-              placeholder={`बोली टाका (उदा. ${auction.currentLowestBid - 10})`}
+              placeholder={getT('customPlaceholder')}
               className="w-full pl-7 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-semibold focus:outline-none focus:border-emerald-500"
             />
           </div>
@@ -301,7 +433,7 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
           >
             <Send className="w-3.5 h-3.5" />
-            <span>{submitting ? 'नोंदवत आहे...' : dict.placeBid}</span>
+            <span>{submitting ? '...' : dict.placeBid}</span>
           </button>
         </form>
       </div>
@@ -310,14 +442,14 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
       <div className="mt-5">
         <div className="flex items-center justify-between mb-2">
           <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-            थेट बोली क्रमवारी (Live Bid Stream)
+            {getT('liveBidStream')}
           </h4>
           <button
             onClick={handleResetDemo}
             className="text-[11px] text-slate-400 hover:text-amber-300 flex items-center gap-1 transition-colors"
           >
             <RotateCcw className="w-3 h-3" />
-            <span>लिलाव पूर्ववत करा (Reset Demo)</span>
+            <span>{getT('resetDemo')}</span>
           </button>
         </div>
 
@@ -348,7 +480,7 @@ export const ReverseAuctionConsole: React.FC<ReverseAuctionConsoleProps> = ({
                   ₹{bid.amount}
                 </div>
                 <div className="text-[10px] text-slate-500">
-                  {bid.timestamp ? new Date(bid.timestamp).toLocaleTimeString() : 'आत्ताच'}
+                  {bid.timestamp ? new Date(bid.timestamp).toLocaleTimeString() : ''}
                 </div>
               </div>
             </div>

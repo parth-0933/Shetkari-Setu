@@ -356,4 +356,117 @@ router.post('/ml/predict-grade', async (req, res) => {
   res.json({ success: true, data: result });
 });
 
+// 11. Farmer Authentication & Onboarding
+router.post('/auth/farmer/login', (req, res) => {
+  const {
+    name = 'तुकाराम पाटील (Tukaram Patil)',
+    phone = '+91 98223 45678',
+    village = 'Lamjana (लामजणा)',
+    taluka = 'Ausa (औसा)',
+    district = 'Latur (लातूर)',
+    crop = 'Soybean',
+    quantityQuintals = 15,
+    upiId = 'tukaram.patil@okhdfcbank'
+  } = req.body;
+
+  mockStore.farmer = {
+    id: `FRM_${Date.now()}`,
+    name,
+    phone,
+    village,
+    taluka,
+    district,
+    crop,
+    quantityQuintals: Number(quantityQuintals) || 15,
+    upiId,
+    preferredLanguage: 'mr',
+    isLoggedIn: true,
+    loginTimestamp: new Date().toISOString()
+  };
+
+  res.json({
+    success: true,
+    message: 'शेतकरी नोंदणी व लॉगिन यशस्वी (Farmer Authenticated)',
+    farmer: mockStore.farmer
+  });
+});
+
+router.get('/auth/farmer/current', (req, res) => {
+  res.json({
+    success: true,
+    farmer: mockStore.farmer
+  });
+});
+
+// 12. Adat / Mill Owner Authentication & Licensing
+router.post('/auth/adat/login', (req, res) => {
+  const {
+    businessName = 'Kirti Gold Agro Oil Mill (MIDC Latur)',
+    ownerName = 'राजेश काबरा (Rajesh Kabra)',
+    entityType = 'MILL',
+    licenseNumber = 'MH-LTR-DML-2024-88',
+    mandiLocation = 'MIDC Latur',
+    phone = '+91 94220 12345',
+    gstNo = '27AABCK1234F1Z5'
+  } = req.body;
+
+  const adatProfile = {
+    id: `ADAT_${Date.now()}`,
+    businessName,
+    ownerName,
+    entityType,
+    licenseNumber,
+    mandiLocation,
+    phone,
+    gstNo,
+    isLoggedIn: true,
+    loginTimestamp: new Date().toISOString()
+  };
+
+  mockStore.currentAdat = adatProfile;
+
+  // Also ensure buyer entry exists in buyers list
+  const existingBuyer = mockStore.buyers.find(b => b.name === businessName || b.license === licenseNumber);
+  if (!existingBuyer) {
+    mockStore.buyers.unshift({
+      id: adatProfile.id,
+      name: businessName,
+      type: entityType,
+      license: licenseNumber,
+      locationName: mandiLocation,
+      distanceKm: 41,
+      ratePerQuintal: 4950,
+      cessRatePct: entityType === 'MILL' ? 0.0 : 1.05,
+      transportCost: 900,
+      quotaRemaining: 500,
+      trustScore: 4.9,
+      aiTrend: { trendPct: 3.2, recommendation: 'Active Licensee', isOutlier: false }
+    });
+  }
+
+  res.json({
+    success: true,
+    message: 'आडत / मिल परवाना पडताळणी व लॉगिन यशस्वी (Adat Authenticated)',
+    adat: adatProfile
+  });
+});
+
+router.get('/auth/adat/current', (req, res) => {
+  res.json({
+    success: true,
+    adat: mockStore.currentAdat || {
+      id: 'BUYER_MILL_01',
+      businessName: 'Kirti Gold Agro Oil Mill (कीर्ती गोल्ड ऑईल मिल)',
+      ownerName: 'राजेश काबरा (Rajesh Kabra)',
+      entityType: 'MILL',
+      licenseNumber: 'MH-LTR-DML-2024-88',
+      mandiLocation: 'MIDC Latur',
+      phone: '+91 94220 12345',
+      gstNo: '27AABCK1234F1Z5',
+      isLoggedIn: true
+    }
+  });
+});
+
 module.exports = router;
+

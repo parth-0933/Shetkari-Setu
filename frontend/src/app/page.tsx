@@ -14,16 +14,16 @@ import {
   Scale,
   MapPin,
   TrendingUp,
-  RotateCcw,
   CheckCircle2,
-  Zap,
-  Globe
+  User,
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
-import { Language, t } from '@/lib/translations';
+import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
-  const [lang, setLang] = useState<Language>('mr');
+  const { lang, dict } = useLanguage();
+  const { farmerUser, adatUser } = useAuth();
   const [lowBandwidth, setLowBandwidth] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [activeStep, setActiveStep] = useState(1);
@@ -41,8 +41,6 @@ export default function HomePage() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-  const dict = t[lang];
 
   // 90-Second Walkthrough Auto-Runner
   const handleStart90SecDemo = () => {
@@ -62,11 +60,11 @@ export default function HomePage() {
     return () => stepIntervals.forEach(clearTimeout);
   };
 
+  const stageIcons = [Sprout, TrendingUp, ShieldCheck, Truck, Scale];
+
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col">
       <Navbar
-        lang={lang}
-        onToggleLang={() => setLang(lang === 'mr' ? 'en' : 'mr')}
         lowBandwidth={lowBandwidth}
         onToggleLowBandwidth={() => setLowBandwidth(!lowBandwidth)}
         isOnline={isOnline}
@@ -87,18 +85,16 @@ export default function HomePage() {
                 SIH 2026 Prototype — Govt. of Maharashtra Track
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-800/40 text-emerald-300 border border-emerald-600/40">
-                Latur Ground Benchmark Scenario
+                {dict.activeBenchmark}
               </span>
             </div>
 
             {/* Title & Tagline */}
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-              {dict.appTitle} — <span className="bg-gradient-to-r from-emerald-400 via-amber-300 to-emerald-300 bg-clip-text text-transparent">शेतकरी सेतू</span>
+              {dict.appTitle} — <span className="bg-gradient-to-r from-emerald-400 via-amber-300 to-emerald-300 bg-clip-text text-transparent">{dict.heroHighlight || dict.appTitle}</span>
             </h1>
             <p className="mt-3 text-sm sm:text-base text-emerald-100/80 max-w-3xl leading-relaxed">
-              {lang === 'mr'
-                ? 'माहितीचा अभाव, मध्यस्थांचे आर्थिक शोषण आणि वाहतूक अडथळे दूर करून शेतकऱ्यांना थेट उच्च बाजारभावाची हमी देणारे व्यासपीठ. लामजणा गावातील (औसा, लातूर) १५ क्विंटल सोयाबीन विक्रीचे प्रत्यक्ष मॉडेल.'
-                : 'Eliminating price asymmetry, intermediary exploitation, and transport friction. Ground benchmark: a farmer in Lamjana village (Ausa Taluka, Latur) selling 15 quintals of soybean.'}
+              {dict.heroSubtitle}
             </p>
 
             {/* Ground Benchmark Scenario Card */}
@@ -106,32 +102,32 @@ export default function HomePage() {
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                 <div>
-                  <span className="text-[10px] text-slate-400 block">मूळ ठिकाण (Origin)</span>
-                  <strong className="text-white">लामजणा, ता. औसा, जि. लातूर</strong>
+                  <span className="text-[10px] text-slate-400 block">{dict.originLabel}</span>
+                  <strong className="text-white">{dict.originVal}</strong>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2">
                 <Sprout className="w-4 h-4 text-amber-400 flex-shrink-0" />
                 <div>
-                  <span className="text-[10px] text-slate-400 block">शेतमाल व प्रमाण (Produce)</span>
-                  <strong className="text-white">१५ क्विंटल सोयाबीन (Grade A)</strong>
+                  <span className="text-[10px] text-slate-400 block">{dict.produceLabel}</span>
+                  <strong className="text-white">{dict.produceVal}</strong>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2">
                 <TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                 <div>
-                  <span className="text-[10px] text-slate-400 block">अनलॉक झालेला नफा (Net Surplus)</span>
-                  <strong className="text-emerald-300 text-sm font-black">+₹७,७०० निव्वळ जास्त</strong>
+                  <span className="text-[10px] text-slate-400 block">{dict.surplusLabel}</span>
+                  <strong className="text-emerald-300 text-sm font-black">{dict.surplusVal}</strong>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2">
                 <Scale className="w-4 h-4 text-amber-400 flex-shrink-0" />
                 <div>
-                  <span className="text-[10px] text-slate-400 block">कायदेशीर हमी (Compliance)</span>
-                  <strong className="text-white">Non-Custodial Escrow (DML-88)</strong>
+                  <span className="text-[10px] text-slate-400 block">{dict.complianceLabel}</span>
+                  <strong className="text-white">{dict.complianceVal}</strong>
                 </div>
               </div>
             </div>
@@ -143,7 +139,7 @@ export default function HomePage() {
                 className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-400 hover:to-amber-400 text-emerald-950 font-black text-sm shadow-xl shadow-emerald-950/60 hover:scale-105 transition-all flex items-center gap-2"
               >
                 <Sprout className="w-4 h-4" />
-                <span>शेतकरी कक्ष सुरू करा (Open Farmer Portal)</span>
+                <span>{dict.openFarmerPortalBtn}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
 
@@ -152,8 +148,16 @@ export default function HomePage() {
                 className="px-5 py-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-emerald-500/40 text-emerald-200 font-bold text-sm flex items-center gap-2 transition-all hover:border-emerald-400"
               >
                 <Play className={`w-4 h-4 text-amber-400 ${isPlayingDemo ? 'animate-spin' : ''}`} />
-                <span>९०-सेकंद थेट डेमो वॉकथ्रू (90-Sec Live Demo)</span>
+                <span>{dict.liveDemo90SecBtn}</span>
               </button>
+
+              <Link
+                href="/login"
+                className="px-5 py-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-amber-500/40 text-amber-200 font-bold text-sm flex items-center gap-2 transition-all hover:border-amber-400 shadow-md"
+              >
+                <User className="w-4 h-4 text-amber-400" />
+                <span>लॉगिन / नोंदणी</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -164,52 +168,21 @@ export default function HomePage() {
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <Award className="w-5 h-5 text-amber-400" />
-                <span>९०-सेकंद मूल्यांकन वॉकथ्रू टप्पे (SIH Evaluation Pipeline)</span>
+                <span>{dict.pipelineTitle}</span>
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                परीक्षकांसाठी लामजणा ते लातूर संपूर्ण व्यवहाराचा ५-टप्प्यांचा प्रवाह
+                {dict.pipelineSubtitle}
               </p>
             </div>
             <div className="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-800/60">
-              टप्पा {activeStep} / ५ सक्रिय
+              {dict.stepActive} {activeStep} {dict.stepActiveSuffix}
             </div>
           </div>
 
           {/* Step Progress Indicators */}
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-5 gap-3">
-            {[
-              {
-                step: 1,
-                title: '१. भाषिणी व्हॉइस इनपुट',
-                desc: 'लामजणा शेतकरी १५ क्विंटल सोयाबीन मराठीत बोलून नोंदवतो.',
-                icon: Sprout
-              },
-              {
-                step: 2,
-                title: '२. आर्बिट्राज तुलना',
-                desc: 'स्थानिक मंडी vs लातूर APMC vs कीर्ती गोल्ड मिल थेट नफा तुलना.',
-                icon: TrendingUp
-              },
-              {
-                step: 3,
-                title: '३. भाव लॉक व कायदेशीर संमती',
-                desc: 'Non-Custodial एस्क्रो हमीसह ३ तासांसाठी दर लॉक.',
-                icon: ShieldCheck
-              },
-              {
-                step: 4,
-                title: '४. १०-मि. वाहतूक लिलाव',
-                desc: 'Socket.io रिव्हर्स ऑक्शन + ₹६५० फ्लोअर प्राईस संरक्षण.',
-                icon: Truck
-              },
-              {
-                step: 5,
-                title: '५. वजन पावती व एस्क्रो रिलीज',
-                desc: 'डिजिटल वजन पावती + UPI Route स्प्लिट सेटलमेंट.',
-                icon: Scale
-              }
-            ].map((s) => {
-              const Icon = s.icon;
+            {dict.stages?.map((s: any, idx: number) => {
+              const Icon = stageIcons[idx] || Sprout;
               const isCurrent = activeStep === s.step;
               const isDone = activeStep > s.step;
 
@@ -239,11 +212,7 @@ export default function HomePage() {
           {/* Quick Action for Active Step */}
           <div className="mt-5 p-4 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="text-xs text-slate-300">
-              {activeStep === 1 && '👉 टप्पा १: शेतकरी कक्षात भाषिणी व्हॉइस इनपुट वापरून फॉर्म भरा.'}
-              {activeStep === 2 && '👉 टप्पा २: कीर्ती गोल्ड मिलचा निव्वळ भाव ₹७३,३५० (स्थानिकपेक्षा +₹७,७००) तपासा.'}
-              {activeStep === 3 && '👉 टप्पा ३: डिजिटल संमती मोडल तपासा (Non-Custodial Escrow & APMC कायदेशीर सुसंगतता).'}
-              {activeStep === 4 && '👉 टप्पा ४: वाहतूकदार कक्षात बोली लावा व ₹६०० टाकून फ्लोअर प्राईस रिजेक्शन तपासा.'}
-              {activeStep === 5 && '👉 टप्पा ५: ऑईल मिल कक्षात डिजिटल वजन पावती तयार करून थेट एस्क्रो रक्कम रिलीज करा.'}
+              {dict.stages?.[activeStep - 1]?.prompt}
             </div>
 
             <div className="flex items-center gap-2">
@@ -257,7 +226,7 @@ export default function HomePage() {
                 }
                 className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
               >
-                <span>हा टप्पा थेट चालवा</span>
+                <span>{dict.runStageDirectlyBtn}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -276,13 +245,26 @@ export default function HomePage() {
               <Sprout className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-white mt-4 group-hover:text-emerald-300 transition-colors">
-              १. शेतकरी कक्ष (Farmer Portal)
+              {dict.portalCards?.farmer?.title}
             </h3>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              भाषिणी व्हॉइस इनपुट, थेट आर्बिट्राज तुलना (Mandi vs APMC vs Mill), AI भाव अंदाज, पारदर्शक खर्च वजावट, PWA ऑफलाइन IndexedDB व SMS पर्याय.
+              {dict.portalCards?.farmer?.desc}
             </p>
+
+            {/* Profile / Login status */}
+            {farmerUser?.isLoggedIn ? (
+              <div className="mt-3 px-2.5 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-[11px] text-emerald-300 font-semibold flex items-center justify-between">
+                <span>👤 {farmerUser.name}</span>
+                <span className="text-[10px] text-amber-300 font-bold">लॉगिन सक्रिय</span>
+              </div>
+            ) : (
+              <div className="mt-3 px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-700/60 text-[11px] text-slate-400 font-medium">
+                लॉगिन / नोंदणी करून सुरू करा
+              </div>
+            )}
+
             <div className="mt-4 flex items-center text-xs font-bold text-emerald-400 gap-1">
-              <span>प्रवेश करा</span>
+              <span>{farmerUser?.isLoggedIn ? dict.portalCards?.farmer?.enterBtn : 'नोंदणी करा व सुरू करा'}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
@@ -296,13 +278,26 @@ export default function HomePage() {
               <Store className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-white mt-4 group-hover:text-amber-300 transition-colors">
-              २. अडत व मिल कक्ष (Adat & Mill Portal)
+              {dict.portalCards?.mill?.title}
             </h3>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              दैनिक दर प्रकाशन, ML-संचलित &gt;२०% APMC आउटलायर इशारा, येणाऱ्या शेतीमालाचे लाइव्ह काउंटडाउन, डिजिटल वजन पावती व UPI Route एस्क्रो रिलीज.
+              {dict.portalCards?.mill?.desc}
             </p>
+
+            {/* Profile / Login status */}
+            {adatUser?.isLoggedIn ? (
+              <div className="mt-3 px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-500/40 text-[11px] text-amber-300 font-semibold flex items-center justify-between">
+                <span>🏢 {adatUser.businessName}</span>
+                <span className="text-[10px] text-emerald-300 font-bold">परवाना सक्रिय</span>
+              </div>
+            ) : (
+              <div className="mt-3 px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-700/60 text-[11px] text-slate-400 font-medium">
+                परवाना नोंदणी करून सुरू करा
+              </div>
+            )}
+
             <div className="mt-4 flex items-center text-xs font-bold text-amber-400 gap-1">
-              <span>प्रवेश करा</span>
+              <span>{adatUser?.isLoggedIn ? dict.portalCards?.mill?.enterBtn : 'नोंदणी करा व सुरू करा'}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
@@ -316,13 +311,13 @@ export default function HomePage() {
               <Truck className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-white mt-4 group-hover:text-sky-300 transition-colors">
-              ३. वाहतूकदार लिलाव (Transporter Engine)
+              {dict.portalCards?.transporter?.title}
             </h3>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              १०-मिनिटांचा थेट Socket.io रिव्हर्स ऑक्शन, -₹२०/-₹५० झटपट बोली, ₹६५० फ्लोअर प्राईस संरक्षण (हार्ड सर्वर व्हॅलिडेशन), AI संगनमत शोध.
+              {dict.portalCards?.transporter?.desc}
             </p>
             <div className="mt-4 flex items-center text-xs font-bold text-sky-400 gap-1">
-              <span>प्रवेश करा</span>
+              <span>{dict.portalCards?.transporter?.enterBtn}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
@@ -334,14 +329,14 @@ export default function HomePage() {
           <div className="flex items-center space-x-2">
             <ShieldCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span>
-              <strong>कायदेशीर संरक्षण:</strong> महाराष्ट्र APMC कायदा व RBI पेमेंट एग्रीगेटर मार्गदर्शक तत्त्वांशी १००% सुसंगत नॉन-कस्टोडियल मॉडेल.
+              <strong>{dict.legalBanner?.title}</strong> {dict.legalBanner?.desc}
             </span>
           </div>
           <Link
             href="/compliance"
             className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 font-semibold flex items-center gap-1 transition-colors flex-shrink-0"
           >
-            <span>COMPLIANCE.md व कायदेशीर विश्लेषण वाचा</span>
+            <span>{dict.legalBanner?.readMoreBtn}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

@@ -15,6 +15,9 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import { LanguageProvider } from '@/context/LanguageContext';
+import { AuthProvider } from '@/context/AuthContext';
+
 export default function RootLayout({
   children,
 }: {
@@ -27,7 +30,11 @@ export default function RootLayout({
         <meta name="theme-color" content="#25915d" />
       </head>
       <body className="antialiased selection:bg-amber-500 selection:text-emerald-950">
-        {children}
+        <LanguageProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

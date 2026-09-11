@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { TrendingUp, ArrowRight, ShieldCheck, ChevronDown, ChevronUp, MapPin, Award, IndianRupee } from 'lucide-react';
-import { Language, t } from '@/lib/translations';
+import { useLanguage } from '@/context/LanguageContext';
+import { Language } from '@/lib/translations';
 
 interface OptionBreakdown {
   grossRevenue: number;
@@ -38,7 +39,6 @@ interface ArbitrageOption {
 interface ArbitrageCardProps {
   option: ArbitrageOption;
   isBest: boolean;
-  lang: Language;
   onLockPrice: (option: ArbitrageOption) => void;
   lowBandwidth: boolean;
 }
@@ -46,23 +46,182 @@ interface ArbitrageCardProps {
 export const ArbitrageCard: React.FC<ArbitrageCardProps> = ({
   option,
   isBest,
-  lang,
   onLockPrice,
   lowBandwidth
 }) => {
-  const dict = t[lang];
+  const { lang, dict } = useLanguage();
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   const getBuyerTypeLabel = (type: string) => {
-    switch (type) {
-      case 'MILL':
-        return lang === 'mr' ? 'थेट ऑईल मिल (डायरेक्ट खरेदी परवाना)' : 'Direct Oil Mill (DML Licensed)';
-      case 'APMC_ADAT':
-        return lang === 'mr' ? 'लातूर APMC मुख्य यार्ड (नोंदणीकृत अडत)' : 'Latur APMC Main Yard (Licensed Adat)';
-      default:
-        return lang === 'mr' ? 'स्थानिक उपबाजार' : 'Local Sub-Mandi Yard';
+    const labels: Record<string, Record<Language, string>> = {
+      MILL: {
+        en: 'Direct Oil Mill (DML Licensed)',
+        mr: 'थेट ऑईल मिल (डायरेक्ट खरेदी परवाना)',
+        hi: 'सीधी ऑइल मिल (DML लाइसेंस प्राप्त)',
+        kn: 'ನೇರ ಆಯಿಲ್ ಮಿಲ್ (ಪರವಾನಗಿ)',
+        te: 'ప్రత్యక్ష ఆయిల్ మిల్లు (లైసెన్స్)',
+        gu: 'સીધી ઓઇલ મિલ (DML લાયસન્સ)'
+      },
+      APMC_ADAT: {
+        en: 'Latur APMC Main Yard (Licensed Adat)',
+        mr: 'लातूर APMC मुख्य यार्ड (नोंदणीकृत अडत)',
+        hi: 'लातूर APMC मुख्य यार्ड (पंजीकृत आढ़त)',
+        kn: 'ಲಾತೂರ್ APMC ಮುಖ್ಯ ಯಾರ್ಡ್',
+        te: 'లాతూర్ APMC ప్రధాన మార్కెట్',
+        gu: 'લાતૂર APMC મુખ્ય યાર્ડ (લાઇસન્સ)'
+      },
+      LOCAL_MANDI: {
+        en: 'Local Sub-Mandi Yard',
+        mr: 'स्थानिक उपबाजार',
+        hi: 'स्थानीय उप-मंडी यार्ड',
+        kn: 'ಸ್ಥಳೀಯ ಉಪ-ಮಾರುಕಟ್ಟೆ',
+        te: 'స్థానిక ఉప-మార్కెట్',
+        gu: 'સ્થાનિક સબ-મંડી યાર્ડ'
+      }
+    };
+    return labels[type]?.[lang] || labels[type]?.en || 'Market Buyer';
+  };
+
+  const bestBadgeText: Record<Language, string> = {
+    en: 'Max Net Take-Home',
+    mr: 'सर्वोत्तम निव्वळ नफा',
+    hi: 'अधिकतम शुद्ध लाभ',
+    kn: 'ಗರಿಷ್ಠ ನಿವ್ವಳ ಲಾಭ',
+    te: 'గరిష్ట నికర లాభం',
+    gu: 'મહત્તમ ચોખ્ખો નફો'
+  };
+
+  const netTakeHomeDirectBankLabel: Record<Language, string> = {
+    en: 'Net Take-Home (Direct Bank Credit):',
+    mr: 'निव्वळ हातात येणारी रक्कम (थेट बँक खात्यात):',
+    hi: 'शुद्ध हाथ में आने वाली राशि (सीधे बैंक खाते में):',
+    kn: 'ನಿವ್ವಳ ಕೈಗೆ ಸಿಗುವ ಮೊತ್ತ (ಬ್ಯಾಂಕ್ ಜಮೆ):',
+    te: 'చేతికందే నికర మొత్తం (బ్యాంకు జమ):',
+    gu: 'ચોખ્ખી રકમ (સીધી બેંક જમા):'
+  };
+
+  const buyerDetails: Record<string, Record<Language, { name: string; route: string; rec: string; insight: string }>> = {
+    BUYER_MILL_01: {
+      en: {
+        name: 'Kirti Gold Agro Oil Mill (MIDC Latur)',
+        route: '41 km (via NH 361)',
+        rec: 'Holding Recommended (+3.2% in 48h)',
+        insight: 'Latur oil mills running high crush capacity; demand expected to surge this week.'
+      },
+      mr: {
+        name: 'कीर्ती गोल्ड ॲग्रो ऑईल मिल (MIDC लातूर)',
+        route: '४१ किमी (NH 361 महामार्ग)',
+        rec: 'साठवणूक शिफारस (+३.२% पुढील ४८ तासांत)',
+        insight: 'लातूर ऑईल मिल क्रशिंग क्षमता उच्च; मागणी वाढण्याची शक्यता.'
+      },
+      hi: {
+        name: 'कीर्ति गोल्ड एग्रो ऑइल मिल (MIDC लातूर)',
+        route: '41 किमी (NH 361 हाईवे)',
+        rec: 'होल्डिंग की सलाह (+3.2% 48 घंटे में)',
+        insight: 'लातूर ऑइल मिल क्रशिंग क्षमता उच्च; मांग बढ़ने की संभावना।'
+      },
+      kn: {
+        name: 'ಕೀರ್ತಿ ಗೋಲ್ಡ್ ಆಗ್ರೋ ಆಯಿಲ್ ಮಿಲ್ (MIDC ಲಾತೂರ್)',
+        route: '41 ಕಿಮೀ (NH 361 ಹೆದ್ದಾರಿ)',
+        rec: 'ಹಿಡಿದಿಟ್ಟುಕೊಳ್ಳಲು ಶಿಫಾರಸು (+3.2%)',
+        insight: 'ಲಾತೂರ್ ಆಯಿಲ್ ಮಿಲ್ ಕ್ರಶಿಂಗ್ ಸಾಮರ್ಥ್ಯ ಹೆಚ್ಚಿದ್ದು, ಬೇಡಿಕೆ ಹೆಚ್ಚಾಗುವ ಸಾಧ್ಯತೆ ಇದೆ.'
+      },
+      te: {
+        name: 'కీర్తి గోల్డ్ ఆగ్రో ఆయిల్ మిల్లు (MIDC లాతూర్)',
+        route: '41 కి.మీ (NH 361 హైవే)',
+        rec: 'నిల్వ ఉంచడం శ్రేయస్కరం (+3.2%)',
+        insight: 'లాతూర్ ఆయిల్ మిల్లులో క్రషింగ్ సామర్థ్యం ఎక్కువ; డిమాండ్ పెరిగే అవకాశం ఉంది.'
+      },
+      gu: {
+        name: 'કીર્તિ ગોલ્ડ એગ્રો ઓઇલ મિલ (MIDC લાતૂર)',
+        route: '41 કિમી (NH 361 હાઇવે)',
+        rec: 'સ્ટોક રાખવાની ભલામણ (+3.2%)',
+        insight: 'લાતૂર ઓઇલ મિલ ક્રશિંગ ક્ષમતા ઊંચી; માંગ વધવાની શક્યતા.'
+      }
+    },
+    BUYER_APMC_01: {
+      en: {
+        name: 'Latur APMC Market Yard (Main Yard Adat)',
+        route: '38 km (via Ausa-Latur Rd)',
+        rec: 'Bullish (+2.8% likely)',
+        insight: 'Arrival volumes moderate; strong competitive bidding among licensed Adatyas.'
+      },
+      mr: {
+        name: 'लातूर APMC मुख्य यार्ड (नोंदणीकृत अडत)',
+        route: '३८ किमी (औसा-लातूर मार्ग)',
+        rec: 'दरवाढ संभव (+२.८%)',
+        insight: 'लातूर बाजारात आवक मध्यम; अडत्यांमध्ये चुरस.'
+      },
+      hi: {
+        name: 'लातूर APMC मुख्य मंडी (पंजीकृत आढ़त)',
+        route: '38 किमी (औसा-लातूर मार्ग)',
+        rec: 'तेजी संभव (+2.8%)',
+        insight: 'लातूर मंडी में आवक मध्यम; आढ़तियों में प्रतिस्पर्धा।'
+      },
+      kn: {
+        name: 'ಲಾತೂರ್ APMC ಮುಖ್ಯ ಯಾರ್ಡ್ (ಆಡತ್)',
+        route: '38 ಕಿಮೀ (ಔಸಾ-ಲಾತೂರ್ ರಸ್ತೆ)',
+        rec: 'ಬೆಲೆ ಏರಿಕೆ ಸಾಧ್ಯತೆ (+2.8%)',
+        insight: 'ಮಾರುಕಟ್ಟೆಗೆ ಸರಕು ಸಾಧಾರಣವಾಗಿದ್ದು, ವರ್ತಕರಲ್ಲಿ ಸ್ಪರ್ಧೆ ಇದೆ.'
+      },
+      te: {
+        name: 'లాతూర్ APMC ప్రధాన మార్కెట్ (ఆడత్)',
+        route: '38 కి.మీ (ఔసా-లాతూర్ రోడ్డు)',
+        rec: 'ధరల పెరుగుదల అవకాశం (+2.8%)',
+        insight: 'లాతూర్ మార్కెట్లో రాక సాధారణం; వ్యాపారులలో తీవ్ర పోటీ.'
+      },
+      gu: {
+        name: 'લાતૂર APMC મુખ્ય યાર્ડ (લાઇસન્સ આડત)',
+        route: '38 કિમી (ઔસા-લાતૂર રોડ)',
+        rec: 'ભાવ વધવાની શક્યતા (+2.8%)',
+        insight: 'લાતૂર યાર્ડમાં આવક મધ્યમ; વેપારીઓમાં હરીફાઈ.'
+      }
+    },
+    BUYER_LOCAL_01: {
+      en: {
+        name: 'Ausa / Lamjana Sub-Mandi (Local Yard)',
+        route: '12 km (Local Village Road)',
+        rec: 'Distress / Under-benchmarked (-₹420)',
+        insight: 'Intermediary margins high; buying rate ₹420 below APMC benchmark.'
+      },
+      mr: {
+        name: 'औसा / लामजणा स्थानिक उपबाजार',
+        route: '१२ किमी (स्थानिक रस्ता)',
+        rec: 'तोट्याची विक्री (बेंचमार्कपेक्षा -₹४२०)',
+        insight: 'मध्यस्थांचे मार्जिन जास्त; बेंचमार्कपेक्षा ₹४२० कमी दर.'
+      },
+      hi: {
+        name: 'औसा / लामजना स्थानीय उप-मंडी',
+        route: '12 किमी (ग्रामीण संपर्क मार्ग)',
+        rec: 'कम भाव (बेंचमार्क से -₹420)',
+        insight: 'बिचौलियों का मार्जिन अधिक; बेंचमार्क से ₹420 कम दर।'
+      },
+      kn: {
+        name: 'ಔಸಾ / ಲಾಂಜನಾ ಸ್ಥಳೀಯ ಉಪ-ಮಾರುಕಟ್ಟೆ',
+        route: '12 ಕಿಮೀ (ಗ್ರಾಮೀಣ ರಸ್ತೆ)',
+        rec: 'ಕಡಿಮೆ ಬೆಲೆ (ಮಾನದಂಡಕ್ಕಿಂತ -₹420)',
+        insight: 'ದಲ್ಲಾಳಿಗಳ ಕಮಿಷನ್ ಹೆಚ್ಚು; ಮಾನದಂಡಕ್ಕಿಂತ ₹420 ಕಡಿಮೆ ದರ.'
+      },
+      te: {
+        name: 'ఔసా / లాంజనా స్థానిక ఉప-మార్కెట్',
+        route: '12 కి.మీ (గ్రామీణ రహదారి)',
+        rec: 'తక్కువ ధర (ప్రమాణం కంటే -₹420)',
+        insight: 'దళారుల కమీషన్ ఎక్కువ; ప్రమాణ ధర కంటే ₹420 తక్కువ.'
+      },
+      gu: {
+        name: 'ઔસા / લામજના સ્થાનિક સબ-યાર્ડ',
+        route: '12 કિમી (સ્થાનિક ગ્રામ્ય રસ્તો)',
+        rec: 'ઓછો ભાવ (બેન્ચમાર્કથી -₹420)',
+        insight: 'વચેટિયાઓનું કમિશન વધુ; બેન્ચમાર્ક કરતાં ₹420 ઓછો ભાવ.'
+      }
     }
   };
+
+  const localizedBuyer = buyerDetails[option.id]?.[lang] || buyerDetails[option.id]?.en;
+  const displayBuyerName = localizedBuyer?.name || option.buyerName;
+  const displayRoute = localizedBuyer?.route || option.transportDistanceLabel;
+  const displayRec = localizedBuyer?.rec || option.aiTrend.recommendation;
+  const displayInsight = localizedBuyer?.insight || option.aiTrend.insight;
 
   return (
     <div
@@ -77,7 +236,7 @@ export const ArbitrageCard: React.FC<ArbitrageCardProps> = ({
         <div className="absolute top-0 right-0">
           <div className="bg-gradient-to-l from-amber-500 to-emerald-500 text-emerald-950 text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-bl-xl shadow-md flex items-center gap-1">
             <Award className="w-3.5 h-3.5" />
-            <span>{lang === 'mr' ? 'सर्वोत्तम निव्वळ नफा' : 'Max Net Take-Home'}</span>
+            <span>{bestBadgeText[lang] || bestBadgeText.en}</span>
           </div>
         </div>
       )}
@@ -94,10 +253,10 @@ export const ArbitrageCard: React.FC<ArbitrageCardProps> = ({
               {option.licenseNumber}
             </span>
           </div>
-          <h3 className="text-base font-bold text-white mt-1.5">{option.buyerName}</h3>
+          <h3 className="text-base font-bold text-white mt-1.5">{displayBuyerName}</h3>
           <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
             <MapPin className="w-3.5 h-3.5 text-amber-400/80" />
-            <span>{option.transportDistanceLabel}</span>
+            <span>{displayRoute}</span>
             <span className="text-slate-500">•</span>
             <span>⭐ {option.trustScore} Trust</span>
           </p>
@@ -125,13 +284,13 @@ export const ArbitrageCard: React.FC<ArbitrageCardProps> = ({
             <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
               option.aiTrend.trendPct > 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
             }`}>
-              {option.aiTrend.recommendation}
+              {displayRec}
             </span>
           </div>
           <span className="text-[10px] text-slate-400">ML Conf: 91%</span>
         </div>
         <p className="mt-1 text-[11px] text-slate-300/80 leading-relaxed">
-          {option.aiTrend.insight}
+          {displayInsight}
         </p>
       </div>
 
@@ -182,7 +341,7 @@ export const ArbitrageCard: React.FC<ArbitrageCardProps> = ({
               <span>-₹{option.breakdown.unloadingCharges.toLocaleString('en-IN')}</span>
             </div>
             <div className="pt-2 border-t border-slate-800 flex justify-between font-bold text-emerald-300 text-sm">
-              <span>Net Take-Home (थेट बँक खात्यात):</span>
+              <span>{netTakeHomeDirectBankLabel[lang] || netTakeHomeDirectBankLabel.en}</span>
               <span>₹{option.breakdown.netTakeHome.toLocaleString('en-IN')}</span>
             </div>
           </div>

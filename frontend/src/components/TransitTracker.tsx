@@ -41,6 +41,77 @@ export const TransitTracker: React.FC<TransitTrackerProps> = ({
   const lockedRate = transaction?.lockedRate || 4950;
   const farmerNet = transaction?.farmerNet || 73350;
 
+  const trackerText: Record<string, any> = {
+    en: {
+      originFarm: 'Lamjana Farm (Origin)',
+      routeLength: '41 km Transit Route',
+      destMill: 'Latur Mill Yard (Destination)',
+      currentLocPrefix: 'Current Position:',
+      currentLocVal: 'NH 361 near Harangul (12 km remaining)',
+      completeSuffix: 'Complete',
+      farmerDue: "Farmer's Secured Due:",
+      demoNote: '(Simulate arrival to view digital weighing slip)',
+      simulateBtn: 'Simulate Arrival',
+    },
+    mr: {
+      originFarm: 'लामजणा शेत (Lamjana Farm)',
+      routeLength: '४१ किमी प्रवास (41 km Route)',
+      destMill: 'लातूर मिल (Latur Mill Yard)',
+      currentLocPrefix: 'चालू स्थान:',
+      currentLocVal: 'NH 361 हरंगूळ जवळ (१२ किमी उर्वरित)',
+      completeSuffix: 'पूर्ण',
+      farmerDue: 'शेतकरी हक्काची रक्कम:',
+      demoNote: '(डेमोसाठी वाहन थेट पोहोचवून वजन पावती तपासू शकता)',
+      simulateBtn: 'माल पोहोचला (Simulate Delivery)',
+    },
+    hi: {
+      originFarm: 'लामजना खेत (मूल स्थान)',
+      routeLength: '41 किमी मार्ग (41 km Route)',
+      destMill: 'लातूर मिल यार्ड (गंतव्य)',
+      currentLocPrefix: 'वर्तमान स्थिति:',
+      currentLocVal: 'NH 361 हरंगुल के पास (12 किमी शेष)',
+      completeSuffix: 'पूर्ण',
+      farmerDue: 'किसान की सुरक्षित देय राशि:',
+      demoNote: '(डेमो के लिए वाहन को सीधे गंतव्य तक पहुंचाकर वजन पर्ची देखें)',
+      simulateBtn: 'माल पहुंचा (Simulate Delivery)',
+    },
+    kn: {
+      originFarm: 'ಲಾಂಜನಾ ಫಾರ್ಮ್ (ಮೂಲ)',
+      routeLength: '41 ಕಿಮೀ ಸಾರಿಗೆ ಮಾರ್ಗ',
+      destMill: 'ಲಾತೂರ್ ಮಿಲ್ ಯಾರ್ಡ್ (ಗಮ್ಯ)',
+      currentLocPrefix: 'ಪ್ರಸ್ತುತ ಸ್ಥಳ:',
+      currentLocVal: 'NH 361 ಹರಂಗುಲ್ ಬಳಿ (12 ಕಿಮೀ ಬಾಕಿ)',
+      completeSuffix: 'ಪೂರ್ಣ',
+      farmerDue: 'ರೈತರ ಸುರಕ್ಷಿತ ಹಣ:',
+      demoNote: '(ಡೆಮೊಗಾಗಿ ತಕ್ಷಣ ವಾಹನ ತಲುಪಿಸಿ ತೂಕದ ರಸೀದಿ ವೀಕ್ಷಿಸಿ)',
+      simulateBtn: 'ತಲುಪಿದೆ (Simulate Delivery)',
+    },
+    te: {
+      originFarm: 'లాంజనా పొలం (మూలం)',
+      routeLength: '41 కి.మీ రవాణా మార్గం',
+      destMill: 'లాతూర్ మిల్లు యార్డ్ (గమ్యం)',
+      currentLocPrefix: 'ప్రస్తుత ప్రదేశం:',
+      currentLocVal: 'NH 361 హరంగుల్ దగ్గర (12 కి.మీ మిగిలి ఉంది)',
+      completeSuffix: 'పూర్తయింది',
+      farmerDue: 'రైతు సురక్షిత చెల్లింపు:',
+      demoNote: '(డెమో కోసం వాహనం చేరినట్లుగా చూపించి బరువు రసీదు చూడండి)',
+      simulateBtn: 'చేరింది (Simulate Delivery)',
+    },
+    gu: {
+      originFarm: 'લામજના ખેતર (મૂળ)',
+      routeLength: '41 કિમી પરિવહન માર્ગ',
+      destMill: 'લાતૂર મિલ યાર્ડ (ગંતવ્ય)',
+      currentLocPrefix: 'હાલનું સ્થાન:',
+      currentLocVal: 'NH 361 હરંગૂળ નજીક (12 કિમી બાકી)',
+      completeSuffix: 'પૂર્ણ',
+      farmerDue: 'ખેડૂતની સુરક્ષિત રકમ:',
+      demoNote: '(ડેમો માટે વાહન પહોંચાડીને ડિજિટલ વજન પહોંચ જુઓ)',
+      simulateBtn: 'પહોંચી ગયું (Simulate Delivery)',
+    }
+  };
+
+  const trk = trackerText[lang] || trackerText.en;
+
   return (
     <div className="bg-slate-900/90 border border-emerald-500/50 rounded-2xl p-5 shadow-2xl overflow-hidden backdrop-blur-md">
       
@@ -82,11 +153,11 @@ export const TransitTracker: React.FC<TransitTrackerProps> = ({
         <div className="flex justify-between text-xs text-slate-300 mb-2">
           <span className="flex items-center gap-1 font-semibold text-emerald-400">
             <Navigation className="w-3.5 h-3.5" />
-            <span>लामजणा शेत (Lamjana Farm)</span>
+            <span>{trk.originFarm}</span>
           </span>
-          <span className="text-[11px] font-mono text-slate-400">४१ किमी प्रवास (41 km Route)</span>
+          <span className="text-[11px] font-mono text-slate-400">{trk.routeLength}</span>
           <span className="font-semibold text-amber-400">
-            लातूर मिल (Latur Mill Yard)
+            {trk.destMill}
           </span>
         </div>
 
@@ -101,10 +172,10 @@ export const TransitTracker: React.FC<TransitTrackerProps> = ({
         {/* Real-time Location Pin Status */}
         <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-400">
           <span className="text-emerald-300 font-medium">
-            चालू स्थान: {transaction?.transit?.currentLocation || 'NH 361 हरंगूळ जवळ (१२ किमी उर्वरित)'}
+            {trk.currentLocPrefix} {transaction?.transit?.currentLocation || trk.currentLocVal}
           </span>
           <span className="font-bold text-white bg-slate-800 px-2 py-0.5 rounded">
-            {progress}% पूर्ण
+            {progress}% {trk.completeSuffix}
           </span>
         </div>
       </div>
@@ -135,7 +206,7 @@ export const TransitTracker: React.FC<TransitTrackerProps> = ({
             <span>{dict.escrowHeld}</span>
           </div>
           <div className="text-[11px] text-amber-300 font-semibold">
-            शेतकरी हक्काची रक्कम: ₹{farmerNet.toLocaleString('en-IN')} (SBI Escrow Hold)
+            {trk.farmerDue} ₹{farmerNet.toLocaleString('en-IN')} (SBI Escrow Hold)
           </div>
         </div>
 
@@ -144,7 +215,7 @@ export const TransitTracker: React.FC<TransitTrackerProps> = ({
       {/* Quick Demo Walkthrough Trigger: Simulate Arrival at Weighbridge */}
       <div className="mt-4 flex items-center justify-between pt-2 border-t border-slate-800/60">
         <span className="text-[11px] text-slate-400 italic">
-          (डेमोसाठी वाहन थेट पोहोचवून वजन पावती तपासू शकता)
+          {trk.demoNote}
         </span>
         <button
           onClick={() => {
@@ -153,7 +224,7 @@ export const TransitTracker: React.FC<TransitTrackerProps> = ({
           }}
           className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all"
         >
-          माल पोहोचला (Simulate Delivery)
+          {trk.simulateBtn}
         </button>
       </div>
 
